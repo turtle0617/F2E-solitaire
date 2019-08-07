@@ -14,7 +14,8 @@ function main(cardNum) {
 }
 
 function dragCard(e) {
-  console.log('dragCard');
+  e.dataTransfer.dropEffect = 'move';
+  e.dataTransfer.setData('text/plain', this.id);
   this.style.opacity = '0.4';
 }
 function dropCard(e) {
@@ -23,11 +24,23 @@ function dropCard(e) {
 }
 
 function initDropedItemEvent(item) {
+  // console.log(item);
   item.addEventListener('dragenter', function(e) {
     this.classList.add('over');
   })
   item.addEventListener('dragleave', function(e) {
     this.classList.remove('over');
+  })
+  item.addEventListener('dragover', function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+  })
+  item.addEventListener('drop', function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    this.classList.remove('over');
+    const dropCard = document.getElementById(e.dataTransfer.getData("text"))
+    this.appendChild(dropCard);
   })
 }
 
@@ -60,6 +73,8 @@ function generateCardElement(card) {
   const cardElement = document.createElement('div');
   const img = document.createElement('img');
   cardElement.setAttribute('class', 'card');
+  cardElement.setAttribute('id',card);
+  cardElement.setAttribute('draggable', 'true');
   img.setAttribute('src', `/asset/image/poke/${card}.png`);
   cardElement.appendChild(img);
   cardElement.addEventListener('dragstart',dragCard);
