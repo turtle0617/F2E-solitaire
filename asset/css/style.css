@@ -31,7 +31,6 @@ section{
 }
 .temporaryStorages,.countStorages{
   display: flex;
-  position: relative;
 }
 
 .randomCards{
@@ -81,6 +80,9 @@ section{
 .randomCards__column>.card:nth-of-type(1){
   margin-top: 0;
 
+}
+.countStorages__item{
+  position: relative;
 }
 .countStorages__item>.card{
   position: absolute;
