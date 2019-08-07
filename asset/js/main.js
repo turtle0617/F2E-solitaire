@@ -1,67 +1,68 @@
 main(52);
 
 function main(cardNum) {
-  const cardMap = new Map();
-  let cards = new Array(cardNum).fill(1);
+  const randomCardMap = setCardNumber(cardNum);
+  const cargGroup = sliceCardToGroup(randomCardMap, 4, 7);
   const cardsColumns = [...document.querySelectorAll('.randomCards__column')];
-  setCardNumber(cardMap);
-  cards = cards.map(card => {
-    const cardCol = getCardColumn(cardsColumns);
-    const cardInfo = getRandomCard(1, 13, cardMap);
-    generateCardElement(cardInfo, cardCol);
-    return cardInfo
+  const countStorages = [...document.querySelectorAll('.countStorages__item')];
+  const temporaryStorages = [...document.querySelectorAll('.temporaryStorages__item')];
+  cardsColumns.forEach((column, index) => {
+    cargGroup[index].forEach(card =>column.appendChild(generateCardElement(card)))
+  })
+  countStorages.forEach(count=>initDropedItemEvent(count))
+  temporaryStorages.forEach(count=>initDropedItemEvent(count))
+}
+
+function dragCard(e) {
+  console.log('dragCard');
+  this.style.opacity = '0.4';
+}
+function dropCard(e) {
+  console.log('dropCard',e.target);
+  this.style.opacity = '1';
+}
+
+function initDropedItemEvent(item) {
+  item.addEventListener('dragenter', function(e) {
+    this.classList.add('over');
+  })
+  item.addEventListener('dragleave', function(e) {
+    this.classList.remove('over');
   })
 }
 
-function setCardNumber(cardMap) {
-  cardMap.set('黑桃', new Array(13).fill(1).map((item, index) => (index + 1)))
-  cardMap.set('愛心', new Array(13).fill(1).map((item, index) => (index + 1)))
-  cardMap.set('方塊', new Array(13).fill(1).map((item, index) => (index + 1)))
-  cardMap.set('梅花', new Array(13).fill(1).map((item, index) => (index + 1)))
+function setCardNumber(cardNum) {
+  return Array(cardNum).fill(1).map((item, index) => {
+      index += 1;
+      if (index <= 13)
+        return `黑桃${index}`
+      else if (index > 13 && index <= 26)
+        return `愛心${index-13}`
+      else if (index > 26 && index <= 39)
+        return `方塊${index-26}`
+      else if (index > 39)
+        return `梅花${index-39}`
+    })
+    .sort((a, b) => (Math.random() - 0.5))
 }
 
-function getRandomCard(min, max, cardMap) {
-  const suit = getRandomSuit();
-  const cardNum = getRandomInt(min, max);
-  if (!cardMap.get(suit).includes(cardNum)) {
-    // console.log('已被取過', suit, cardNum)
-    // console.log('已被取過',cardMap.get(suit))
-    return getRandomCard(1, 13, cardMap)
-  }
-  // console.log('不重複 刪除！', suit, cardNum)
-  const deleteIndex = cardMap.get(suit).findIndex(item=>item===cardNum)
-  cardMap.get(suit).splice(deleteIndex, 1)
-  // console.log('刪除後：',cardMap.get(suit))
-  return {
-    suit,
-    cardNum
-  }
+function sliceCardToGroup(cards, groups, position) {
+  return Array(groups).fill(1)
+    .map((group, index) => {
+      group = cards.slice(index * 13, ((index + 1) * 13))
+      return [group.slice(0, position), group.slice(position)]
+    })
+    .flat()
+    .sort((a, b) => (b.length - a.length))
 }
 
-function getRandomInt(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
-
-function getRandomSuit() {
-  const suits = ['黑桃', '愛心', '方塊', '梅花']
-  return suits[Math.floor(Math.random() * Math.floor(4))]
-}
-
-function generateCardElement(card, cardColumn) {
+function generateCardElement(card) {
   const cardElement = document.createElement('div');
   const img = document.createElement('img');
   cardElement.setAttribute('class', 'card');
-  img.setAttribute('src', `/asset/image/poke/${card.suit}${card.cardNum}.png`);
+  img.setAttribute('src', `/asset/image/poke/${card}.png`);
   cardElement.appendChild(img);
-  cardColumn.appendChild(cardElement);
-}
-
-function getCardColumn(cardsColumns) {
-  const chooseColumn = cardsColumns[getRandomInt(0, 7)];
-  if (chooseColumn.children.length === 7) {
-    return getCardColumn(cardsColumns)
-  }
-  return chooseColumn
+  cardElement.addEventListener('dragstart',dragCard);
+  cardElement.addEventListener('dragend',dropCard);
+  return cardElement
 }
