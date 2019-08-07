@@ -144,7 +144,7 @@ function generateCardElement(card) {
   cardElement.setAttribute('class', 'card');
   cardElement.setAttribute('id', card);
   cardElement.setAttribute('draggable', 'true');
-  img.setAttribute('src', `/asset/image/poke/${card}.png`);
+  img.setAttribute('src', `asset/image/poke/${card}.png`);
   cardElement.appendChild(img);
   cardElement.addEventListener('dragstart', dragCard);
   cardElement.addEventListener('dragend', dropCard);
