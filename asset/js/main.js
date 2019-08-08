@@ -51,6 +51,7 @@ function dropCard(e) {
   const currentCardUntilEndGroup = getCurrentCardUntilEnd(allCardsInColumn, this)
   currentCardUntilEndGroup.forEach(card => changeCardOpacity(card, 1))
 }
+
 function initDropedElementEvent(item, status) {
   item.addEventListener('dragenter', function(e) {
     this.classList.add('over');
@@ -189,6 +190,7 @@ function checkCardOrderUntilEnd(currentCard, allCards) {
 }
 
 function compareCardMeetsTheRule(currentCard, nextCard) {
+  if(!currentCard || !nextCard) return true;
   const currentSuit = converCardSuitToColor(currentCard);
   const nextSuit = converCardSuitToColor(nextCard);
   const currentNum = getCardNumber(currentCard);
