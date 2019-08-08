@@ -14,6 +14,20 @@ function main(cardNum) {
   temporaryStorages.forEach(temporary => initDropedElementEvent(temporary, "temporary"))
 }
 
+
+function clickCard(e) {
+  const cardColumn = this.parentNode;
+  const allCardsInColumn = [...cardColumn.children]
+  const isLastCard = cardColumn.lastChild === this;
+  const isOrder = checkCardOrderUntilEnd(this, allCardsInColumn);
+  if (!isLastCard && !isOrder) return;
+  const currentCardUntilEndGroup = getCurrentCardUntilEnd(allCardsInColumn, this)
+  const currentCardUntilEndId = currentCardUntilEndGroup
+    .map(card => getCardId(card))
+    .join(',')
+  currentCardUntilEndGroup.forEach(card => changeCardOpacity(card, 0.4))
+}
+
 function dragCard(e) {
   const cardColumn = this.parentNode;
   const allCardsInColumn = [...cardColumn.children]
@@ -23,20 +37,20 @@ function dragCard(e) {
     e.preventDefault();
     return;
   };
-  const currentCardIndex = allCardsInColumn.findIndex((card) => card === this);
-  const currentCardUntilEndId = allCardsInColumn
-    .filter((card, index) => index >= currentCardIndex)
+  const currentCardUntilEndGroup = getCurrentCardUntilEnd(allCardsInColumn, this)
+  const currentCardUntilEndId = currentCardUntilEndGroup
     .map(card => getCardId(card))
     .join(',')
   e.dataTransfer.dropEffect = 'move';
   e.dataTransfer.setData('text/plain', currentCardUntilEndId);
-  this.style.opacity = '0.4';
+  currentCardUntilEndGroup.forEach(card => changeCardOpacity(card, 0))
 }
 
 function dropCard(e) {
-  this.style.opacity = '1';
+  const allCardsInColumn = [...this.parentNode.children]
+  const currentCardUntilEndGroup = getCurrentCardUntilEnd(allCardsInColumn, this)
+  currentCardUntilEndGroup.forEach(card => changeCardOpacity(card, 1))
 }
-
 function initDropedElementEvent(item, status) {
   item.addEventListener('dragenter', function(e) {
     this.classList.add('over');
@@ -148,6 +162,7 @@ function generateCardElement(card) {
   cardElement.appendChild(img);
   cardElement.addEventListener('dragstart', dragCard);
   cardElement.addEventListener('dragend', dropCard);
+  // cardElement.addEventListener('click', clickCard);
   return cardElement
 }
 
@@ -165,20 +180,11 @@ function checkCardOrder(droppedCard, previousCard, status) {
 }
 
 function checkCardOrderUntilEnd(currentCard, allCards) {
-  const currentCardIndex = allCards.findIndex((card) => card === currentCard);
-  const currentCardUntilEnd = allCards.filter((card, index) => index >= currentCardIndex);
-  return currentCardUntilEnd.every((card, index, cardGroup) => {
+  const currentCardUntilEndGroup = getCurrentCardUntilEnd(allCards, currentCard);
+  return currentCardUntilEndGroup.every((card, index, cardGroup) => {
     const isLast = index === (cardGroup.length - 1)
     if (isLast) return true;
-    return compareCardMeetsTheRule(card,cardGroup[index + 1])
-    // const currentSuit = converCardSuitToColor(card);
-    // const nextSuit = converCardSuitToColor(cardGroup[index + 1]);
-    // const currentNum = getCardNumber(card);
-    // const nextNum = getCardNumber(cardGroup[index + 1]);
-    // if (currentSuit !== nextSuit && (currentNum - nextNum) === 1)
-    //   // if ((currentNum - nextNum) === -1)
-    //   return true;
-    // return false
+    return compareCardMeetsTheRule(card, cardGroup[index + 1])
   })
 }
 
@@ -205,4 +211,13 @@ function getCardNumber(card) {
 
 function getCardId(card) {
   return card.getAttribute('id')
+}
+
+function getCurrentCardUntilEnd(cardGroup, currentCard) {
+  const currentCardIndex = cardGroup.findIndex((card) => card === currentCard);
+  return cardGroup.filter((card, index) => index >= currentCardIndex);
+}
+
+function changeCardOpacity(card, opacity) {
+  return card.style.opacity = opacity;
 }
