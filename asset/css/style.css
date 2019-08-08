@@ -1,43 +1,71 @@
 body{
   margin: 0;
-  background-image: url('../image/bg-all@2x.png');
-  background-repeat: no-repeat;
-  background-size: contain;
   background-color: #302319;
-  background-position: center;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 :root{
   --cardPosition: -100%;
 }
 section{
-  width: 100%;
+  width: 1200px;
+  min-height: 800px;
+  margin: 0 auto;
   padding-top: 100px;
-  overflow: auto;
+  background-image: url('../image/bg-all@2x.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
 }
-@media only screen and (min-width:1350px) {
+/* @media only screen and (min-width:1350px) {
   section{
     width: 80%;
     padding-top: 100px;
     margin: 0 auto;
   }
-}
+} */
 
 .placement{
   display: flex;
   width: 100%;
-  min-width: 1080px;
+  width: 1080px;
+  margin: 0 auto;
   justify-content: space-between;
 }
 .temporaryStorages,.countStorages{
   display: flex;
 }
 
+.countStorages__item{
+  position: relative;
+  background-repeat: no-repeat;
+  background-size: 48px;
+  background-position: center;
+}
+.countStorages__item:nth-of-type(1){
+  background-image: url('../image/愛心花色.png');
+}
+.countStorages__item:nth-of-type(2){
+  background-image: url('../image/黑桃花色.png');
+}
+.countStorages__item:nth-of-type(3){
+  background-image: url('../image/方塊花色.png');
+}
+.countStorages__item:nth-of-type(4){
+  background-image: url('../image/梅花花色.png');
+}
+
+.countStorages__item>.card{
+  position: absolute;
+  top:0;
+  left: 0;
+}
+
 .randomCards{
-  margin-top: 1rem;
   font-size: 0;
-  width: 100%;
-  min-width: 1080px;
+  margin: 0 auto;
+  padding-top: 1rem;
+  width: 1080px;
 }
 .randomCards::after{
   content: "";
@@ -80,12 +108,4 @@ section{
 .randomCards__column>.card:nth-of-type(1){
   margin-top: 0;
 
-}
-.countStorages__item{
-  position: relative;
-}
-.countStorages__item>.card{
-  position: absolute;
-  top:0;
-  left: 0;
 }
