@@ -15,18 +15,6 @@ function main(cardNum) {
 }
 
 
-function clickCard(e) {
-  const cardColumn = this.parentNode;
-  const allCardsInColumn = [...cardColumn.children]
-  const isLastCard = cardColumn.lastChild === this;
-  const isOrder = checkCardOrderUntilEnd(this, allCardsInColumn);
-  if (!isLastCard && !isOrder) return;
-  const currentCardUntilEndGroup = getCurrentCardUntilEnd(allCardsInColumn, this)
-  const currentCardUntilEndId = currentCardUntilEndGroup
-    .map(card => getCardId(card))
-    .join(',')
-  currentCardUntilEndGroup.forEach(card => changeCardOpacity(card, 0.4))
-}
 
 function dragCard(e) {
   const cardColumn = this.parentNode;
@@ -37,20 +25,22 @@ function dragCard(e) {
     e.preventDefault();
     return;
   };
+  console.log('dragCard');
   const currentCardUntilEndGroup = getCurrentCardUntilEnd(allCardsInColumn, this)
   const currentCardUntilEndId = currentCardUntilEndGroup
     .map(card => getCardId(card))
     .join(',')
   e.dataTransfer.dropEffect = 'move';
   e.dataTransfer.setData('text/plain', currentCardUntilEndId);
-  currentCardUntilEndGroup.forEach(card => changeCardOpacity(card, 0))
+  // currentCardUntilEndGroup.forEach(card => changeCardOpacity(card, 0))
 }
 
 function dropCard(e) {
   const allCardsInColumn = [...this.parentNode.children]
   const currentCardUntilEndGroup = getCurrentCardUntilEnd(allCardsInColumn, this)
-  currentCardUntilEndGroup.forEach(card => changeCardOpacity(card, 1))
+  // currentCardUntilEndGroup.forEach(card => changeCardOpacity(card, 1))
 }
+
 
 function initDropedElementEvent(item, status) {
   item.addEventListener('dragenter', function(e) {
@@ -85,6 +75,7 @@ function initColumnByRandomElementEvent(column) {
 function coutElementDrop(e) {
   e.stopPropagation();
   e.preventDefault();
+  console.log('coutElementDrop');
   this.classList.remove('over');
   const dropCardId = e.dataTransfer.getData("text").split(',');
   if (dropCardId.length > 1) return;
@@ -160,12 +151,61 @@ function generateCardElement(card) {
   cardElement.setAttribute('id', card);
   cardElement.setAttribute('draggable', 'true');
   img.setAttribute('src', `asset/image/poke/${card}.png`);
+  img.addEventListener('dragstart', (e) => {
+    e.preventDefault()
+  })
   cardElement.appendChild(img);
-  cardElement.addEventListener('dragstart', dragCard);
-  cardElement.addEventListener('dragend', dropCard);
-  // cardElement.addEventListener('click', clickCard);
+  // cardElement.addEventListener('dragstart', dragCard);
+  // cardElement.addEventListener('dragend', dropCard);
+  cardElement.addEventListener('mousedown', clickCard);
+
   return cardElement
 }
+
+function clickCard(e) {
+  const cardColumn = this.parentNode;
+  const allCardsInColumn = [...cardColumn.children]
+  const isLastCard = cardColumn.lastChild === this;
+  const isOrder = checkCardOrderUntilEnd(this, allCardsInColumn);
+  if (!isLastCard && !isOrder) return;
+  const currentCardUntilEndGroup = getCurrentCardUntilEnd(allCardsInColumn, this)
+  const currentCardUntilEndId = currentCardUntilEndGroup
+    .map(card => getCardId(card))
+    .join(',')
+  moveCard(e, this);
+}
+
+function moveCard(event, card) {
+  let shiftX = event.clientX - card.getBoundingClientRect().left;
+  let shiftY = event.clientY - card.getBoundingClientRect().top;
+  card.style.position = 'absolute';
+  card.style.zIndex = 1000;
+
+  document.body.append(card);
+
+  moveAt(event.pageX, event.pageY);
+
+  function moveAt(pageX, pageY) {
+    card.style.left = pageX - shiftX + 'px';
+    card.style.top = pageY - shiftY + 'px';
+  }
+
+  function onMouseMove(event) {
+    moveAt(event.pageX, event.pageY);
+    card.hidden = true;
+    let elemBelow = document.elementFromPoint(event.clientX, event.clientY);
+    card.hidden = false;
+    let droppableBelow = elemBelow.closest('.countStorages__item');
+  }
+
+  document.addEventListener('mousemove', onMouseMove);
+
+  card.addEventListener('mouseup', function(e) {
+    document.removeEventListener('mousemove', onMouseMove);
+    card.onmouseup = null;
+  },{once:true})
+}
+
 
 function checkCardSuit(droppedCard, bottomCard) {
   const suit = getCardSuit(bottomCard);
@@ -190,7 +230,7 @@ function checkCardOrderUntilEnd(currentCard, allCards) {
 }
 
 function compareCardMeetsTheRule(currentCard, nextCard) {
-  if(!currentCard || !nextCard) return true;
+  if (!currentCard || !nextCard) return true;
   const currentSuit = converCardSuitToColor(currentCard);
   const nextSuit = converCardSuitToColor(nextCard);
   const currentNum = getCardNumber(currentCard);
