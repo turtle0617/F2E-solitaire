@@ -10,8 +10,8 @@ function main(cardNum) {
     initColumnByRandomElementEvent(column)
     cargGroup[index].forEach(card => column.appendChild(generateCardElement(card)))
   })
-  countStorages.forEach(count => initDropedElementEvent(count, "count"))
-  temporaryStorages.forEach(temporary => initDropedElementEvent(temporary, "temporary"))
+  // countStorages.forEach(count => initDropedElementEvent(count, "count"))
+  // temporaryStorages.forEach(temporary => initDropedElementEvent(temporary, "temporary"))
 }
 
 
@@ -32,13 +32,11 @@ function dragCard(e) {
     .join(',')
   e.dataTransfer.dropEffect = 'move';
   e.dataTransfer.setData('text/plain', currentCardUntilEndId);
-  // currentCardUntilEndGroup.forEach(card => changeCardOpacity(card, 0))
 }
 
 function dropCard(e) {
   const allCardsInColumn = [...this.parentNode.children]
   const currentCardUntilEndGroup = getCurrentCardUntilEnd(allCardsInColumn, this)
-  // currentCardUntilEndGroup.forEach(card => changeCardOpacity(card, 1))
 }
 
 
@@ -155,8 +153,6 @@ function generateCardElement(card) {
     e.preventDefault()
   })
   cardElement.appendChild(img);
-  // cardElement.addEventListener('dragstart', dragCard);
-  // cardElement.addEventListener('dragend', dropCard);
   cardElement.addEventListener('mousedown', clickCard);
 
   return cardElement
@@ -172,10 +168,13 @@ function clickCard(e) {
   const currentCardUntilEndId = currentCardUntilEndGroup
     .map(card => getCardId(card))
     .join(',')
-  moveCard(e, this);
+  const countStorages = [...document.querySelectorAll('.countStorages__item')];
+  const temporaryStorages = [...document.querySelectorAll('.temporaryStorages__item')];
+  const dragAreaPosition = getDragPositionInScreen([...temporaryStorages, ...countStorages])
+  moveCard(e, this, dragAreaPosition);
 }
 
-function moveCard(event, card) {
+function moveCard(event, card, dragAreaPosition) {
   let shiftX = event.clientX - card.getBoundingClientRect().left;
   let shiftY = event.clientY - card.getBoundingClientRect().top;
   card.style.position = 'absolute';
@@ -192,18 +191,17 @@ function moveCard(event, card) {
 
   function onMouseMove(event) {
     moveAt(event.pageX, event.pageY);
-    card.hidden = true;
-    let elemBelow = document.elementFromPoint(event.clientX, event.clientY);
-    card.hidden = false;
-    let droppableBelow = elemBelow.closest('.countStorages__item');
+
+    if (!droppableBelow) return
   }
 
   document.addEventListener('mousemove', onMouseMove);
 
   card.addEventListener('mouseup', function(e) {
     document.removeEventListener('mousemove', onMouseMove);
-    card.onmouseup = null;
-  },{once:true})
+  }, {
+    once: true
+  })
 }
 
 
@@ -260,6 +258,25 @@ function getCurrentCardUntilEnd(cardGroup, currentCard) {
   return cardGroup.filter((card, index) => index >= currentCardIndex);
 }
 
-function changeCardOpacity(card, opacity) {
-  return card.style.opacity = opacity;
+
+function getDragPositionInScreen(dragAreas) {
+  const storageAreaPostion = {}
+  dragAreas.forEach(area => {
+    const name = area.getAttribute('class').split(' ')[1].replace(/([A-Z])(\w+)/, "");
+    const position = area.getBoundingClientRect();
+    if (!storageAreaPostion[name]) {
+      storageAreaPostion[name] = Array();
+    }
+    storageAreaPostion[name].push({
+      top: position.top,
+      bottom: position.bottom,
+      left: position.left,
+      right: position.right
+    })
+  })
+  return storageAreaPostion
+}
+
+function checkIsInArea(card, area) {
+  return card.left > area.left && card.right < area.right && card.top < area.top && card.bottom < area.bottom
 }
