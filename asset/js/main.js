@@ -170,7 +170,8 @@ function clickCard(e) {
     .join(',')
   const countStorages = [...document.querySelectorAll('.countStorages__item')];
   const temporaryStorages = [...document.querySelectorAll('.temporaryStorages__item')];
-  const dragAreaPosition = getDragPositionInScreen([...temporaryStorages, ...countStorages])
+  const dragAreaPosition = getDragPositionInScreen([...temporaryStorages, ...countStorages]);
+  console.log(dragAreaPosition);
   moveCard(e, this, dragAreaPosition);
 }
 
@@ -192,7 +193,7 @@ function moveCard(event, card, dragAreaPosition) {
   function onMouseMove(event) {
     moveAt(event.pageX, event.pageY);
 
-    if (!droppableBelow) return
+    // if (!droppableBelow) return
   }
 
   document.addEventListener('mousemove', onMouseMove);
@@ -260,21 +261,17 @@ function getCurrentCardUntilEnd(cardGroup, currentCard) {
 
 
 function getDragPositionInScreen(dragAreas) {
-  const storageAreaPostion = {}
-  dragAreas.forEach(area => {
+  return dragAreas.map(area => {
     const name = area.getAttribute('class').split(' ')[1].replace(/([A-Z])(\w+)/, "");
-    const position = area.getBoundingClientRect();
-    if (!storageAreaPostion[name]) {
-      storageAreaPostion[name] = Array();
-    }
-    storageAreaPostion[name].push({
+    const position = area.getBoundingClientRect()
+    return {
+      name: name,
       top: position.top,
       bottom: position.bottom,
       left: position.left,
       right: position.right
-    })
+    }
   })
-  return storageAreaPostion
 }
 
 function checkIsInArea(card, area) {
