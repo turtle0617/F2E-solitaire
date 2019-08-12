@@ -86,6 +86,7 @@ function coutElementDrop(card, region, originalCardColumn) {
     if (!isSameSuit || !order) {
       originalCardColumn.appendChild(card);
       resetCardPosition(card);
+      region.htmlNode.classList.remove("over");
       return;
     }
   } else {
@@ -93,11 +94,13 @@ function coutElementDrop(card, region, originalCardColumn) {
     if (!isAce) {
       originalCardColumn.appendChild(card);
       resetCardPosition(card);
+      region.htmlNode.classList.remove("over");
       return;
     }
   }
   region.htmlNode.appendChild(card);
   resetCardPosition(card);
+  region.htmlNode.classList.remove("over");
 }
 
 function temporaryElementDrop(card, region, originalCardColumn) {
@@ -110,6 +113,7 @@ function temporaryElementDrop(card, region, originalCardColumn) {
     region.htmlNode.appendChild(card);
   }
   resetCardPosition(card);
+  region.htmlNode.classList.remove("over");
 }
 
 function columnByRandomElementDrop(card, region) {
@@ -215,10 +219,10 @@ function moveCard(event, card, dropRegions) {
     dropRegions.forEach(region => {
       const isMatch = checkIsInDropRegion(card, region);
       if (isMatch) {
-        region.htmlNode.style.borderColor = "yellow";
+        region.htmlNode.classList.add("over");
         return;
       }
-      region.htmlNode.style.borderColor = "#EDEDED";
+      region.htmlNode.classList.remove("over");
     });
   }
   function mouseUp(event) {
