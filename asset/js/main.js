@@ -48,21 +48,21 @@ function dropCard(e) {
   );
 }
 
-function initDropedElementEvent(item, status) {
-  item.addEventListener("dragenter", function(e) {
-    this.classList.add("over");
-  });
-  item.addEventListener("dragleave", function(e) {
-    this.classList.remove("over");
-  });
-  item.addEventListener("dragover", function(e) {
-    e.stopPropagation();
-    e.preventDefault();
-  });
-  if (status === "temporary")
-    return item.addEventListener("drop", temporaryElementDrop);
-  item.addEventListener("drop", coutElementDrop);
-}
+// function initDropedElementEvent(item, status) {
+//   item.addEventListener("dragenter", function(e) {
+//     this.classList.add("over");
+//   });
+//   item.addEventListener("dragleave", function(e) {
+//     this.classList.remove("over");
+//   });
+//   item.addEventListener("dragover", function(e) {
+//     e.stopPropagation();
+//     e.preventDefault();
+//   });
+//   if (status === "temporary")
+//     return item.addEventListener("drop", temporaryElementDrop);
+//   item.addEventListener("drop", coutElementDrop);
+// }
 
 function initColumnByRandomElementEvent(column) {
   column.addEventListener("dragenter", function(e) {
@@ -78,11 +78,9 @@ function initColumnByRandomElementEvent(column) {
   column.addEventListener("drop", columnByRandomElementDrop);
 }
 
-function coutElementDrop(e) {
-  e.stopPropagation();
-  e.preventDefault();
+function coutElementDrop(card, region) {
   console.log("coutElementDrop");
-  this.classList.remove("over");
+  // this.classList.remove("over");
   const dropCardId = e.dataTransfer.getData("text").split(",");
   if (dropCardId.length > 1) return;
 
@@ -99,22 +97,20 @@ function coutElementDrop(e) {
   this.appendChild(dropCard);
 }
 
-function temporaryElementDrop(e) {
-  e.stopPropagation();
-  e.preventDefault();
-  this.classList.remove("over");
-  const dropCardId = e.dataTransfer.getData("text").split(",");
-  if (dropCardId.length > 1) return;
-  const dropCard = document.getElementById(dropCardId.join(""));
-  const hasCardCount = this.children.length;
-  if (hasCardCount) return;
-  this.appendChild(dropCard);
+function temporaryElementDrop(cards, region, originalCardColumn) {
+  // this.classList.remove("over");
+  const hasCard = region.htmlNode.children.length;
+  // const dropCardId = cards.map(card=>getCardId(card));
+  if (hasCard) {
+    originalCardColumn.appendChild(cards);
+  } else {
+    region.htmlNode.appendChild(cards);
+  }
+  resetCardPosition(cards);
 }
 
-function columnByRandomElementDrop(e) {
-  e.stopPropagation();
-  e.preventDefault();
-  this.classList.remove("over");
+function columnByRandomElementDrop(card, region) {
+  // this.classList.remove("over");
   const cardGroup = e.dataTransfer.getData("text").split(",");
   const firtCardInGroup = document.getElementById(cardGroup[0]);
   const meetRule = compareCardMeetsTheRule(this.lastChild, firtCardInGroup);
@@ -191,14 +187,20 @@ function clickCard(e) {
 
 function moveCard(event, card, dropRegions) {
   let cardPosition = card.getBoundingClientRect();
+  let originalCardColumn = card.parentNode;
   let shiftX = event.clientX - cardPosition.left;
   let shiftY = event.clientY - cardPosition.top;
   card.style.position = "absolute";
   card.style.zIndex = 1000;
-
   document.body.append(card);
 
   moveAt(event.pageX, event.pageY);
+
+  document.addEventListener("mousemove", onMouseMove);
+
+  card.addEventListener("mouseup", mouseUp, {
+    once: true
+  });
 
   function moveAt(pageX, pageY) {
     card.style.left = pageX - shiftX + "px";
@@ -215,26 +217,24 @@ function moveCard(event, card, dropRegions) {
       }
       region.htmlNode.style.borderColor = "#EDEDED";
     });
-    // const isMatch = checkIsInArea(card, dropRegion[0]);
-    // if (isMatch) {
-    //   console.log(isMatch);
-    //   dropRegion[0].htmlNode.style.borderColor = 'yellow';
-    //   return;
-    // }
-    // dropRegion[0].htmlNode.style.borderColor = '#EDEDED'
   }
-
-  document.addEventListener("mousemove", onMouseMove);
-
-  card.addEventListener(
-    "mouseup",
-    function(e) {
-      document.removeEventListener("mousemove", onMouseMove);
-    },
-    {
-      once: true
+  function mouseUp(event) {
+    document.removeEventListener("mousemove", onMouseMove);
+    const matchRegion = dropRegions.filter(region =>
+      checkIsInDropRegion(card, region)
+    )[0];
+    if (!matchRegion) {
+      originalCardColumn.appendChild(card);
+      resetCardPosition(card);
+      return;
     }
-  );
+    cardDrop(card, matchRegion, originalCardColumn);
+  }
+}
+
+function cardDrop(card, matchRegion, originalCardColumn) {
+  if (matchRegion.name === "count") return true;
+  temporaryElementDrop(card, matchRegion, originalCardColumn);
 }
 
 function checkCardSuit(droppedCard, bottomCard) {
@@ -335,7 +335,7 @@ function checkIsInDropRegion(card, dropRegion) {
 //     cardPosition.top < region.bottom &&
 //     cardPosition.bottom > region.top
 //   );
-}
+// }
 
 function cardWidthHalfInDropRegion(cardPosition, dropRegion) {
   const cardWidthInRegion =
@@ -357,4 +357,11 @@ function cardLongHalfInDropRegion(cardPosition, dropRegion) {
       ? cardPosition.bottom - dropRegion.top
       : dropRegion.bottom - cardPosition.top;
   return cardLongInRegion / dropRegion.height > 0.5;
+}
+
+function resetCardPosition(card) {
+  card.style.position = "";
+  card.style.left = "";
+  card.style.top = "";
+  card.style.zIndex = "";
 }
