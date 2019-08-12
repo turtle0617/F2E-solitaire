@@ -185,10 +185,15 @@ function clickCard(e) {
   const temporaryStorages = [
     ...document.querySelectorAll(".temporaryStorages__item")
   ];
+  const randomCardContainer = [
+    ...document.querySelectorAll(".randomCards__column")
+  ];
   const dropRegions = getDragPositionInScreen([
     ...temporaryStorages,
-    ...countStorages
+    ...countStorages,
+    ...randomCardContainer
   ]);
+
   moveCard(e, this, dropRegions);
 }
 
@@ -364,7 +369,7 @@ function cardLongHalfInDropRegion(cardPosition, dropRegion) {
     cardPosition.top < dropRegion.top
       ? cardPosition.bottom - dropRegion.top
       : dropRegion.bottom - cardPosition.top;
-  return cardLongInRegion / dropRegion.height > 0.5;
+  return cardLongInRegion/cardPosition.height > 0.5;
 }
 
 function resetCardPosition(card) {
