@@ -84,22 +84,18 @@ function coutElementDrop(card, region, originalCardColumn) {
     const isSameSuit = checkCardSuit(card, region.htmlNode.children[0]);
     const order = checkCardOrder(card, region.htmlNode.lastChild, "increment");
     if (!isSameSuit || !order) {
-      originalCardColumn.appendChild(card);
-      resetCardPosition(card);
-      region.htmlNode.classList.remove("over");
+      resetCardToOriginalRegion(originalCardColumn, card, region);
       return;
     }
   } else {
     const isAce = getCardNumber(card) === 1;
     if (!isAce) {
-      originalCardColumn.appendChild(card);
-      resetCardPosition(card);
-      region.htmlNode.classList.remove("over");
+      resetCardToOriginalRegion(originalCardColumn, card, region);
       return;
     }
   }
   region.htmlNode.appendChild(card);
-  resetCardPosition(card);
+  clearCardStyle(card);
   region.htmlNode.classList.remove("over");
 }
 
@@ -108,24 +104,36 @@ function temporaryElementDrop(card, region, originalCardColumn) {
   const hasCard = region.htmlNode.children.length;
   // const dropCardId = cards.map(card=>getCardId(card));
   if (hasCard) {
-    originalCardColumn.appendChild(card);
-  } else {
-    region.htmlNode.appendChild(card);
+    resetCardToOriginalRegion(originalCardColumn, card, region);
+    return;
   }
-  resetCardPosition(card);
+  region.htmlNode.appendChild(card);
+  clearCardStyle(card);
   region.htmlNode.classList.remove("over");
 }
 
-function columnByRandomElementDrop(card, region) {
+function columnByRandomElementDrop(card, region, originalCardColumn) {
   // this.classList.remove("over");
-  const cardGroup = e.dataTransfer.getData("text").split(",");
-  const firtCardInGroup = document.getElementById(cardGroup[0]);
-  const meetRule = compareCardMeetsTheRule(this.lastChild, firtCardInGroup);
-  if (!meetRule) return;
-  cardGroup.forEach(cardId => {
-    const dropCard = document.getElementById(cardId);
-    this.appendChild(dropCard);
-  });
+  // const firtCardInGroup = document.getElementById(cardGroup[0]);
+  // const meetRule = compareCardMeetsTheRule(region.htmlNode.lastChild, firtCardInGroup);
+  const meetRule = compareCardMeetsTheRule(region.htmlNode.lastChild, card);
+  if (!meetRule) {
+    resetCardToOriginalRegion(originalCardColumn, card, region);
+    return;
+  }
+  region.htmlNode.appendChild(card);
+  clearCardStyle(card);
+  region.htmlNode.classList.remove("over");
+  // cardGroup.forEach(cardId => {
+  //   const dropCard = document.getElementById(cardId);
+  //   region.htmlNode.appendChild(dropCard);
+  // });
+}
+
+function resetCardToOriginalRegion(originalCardColumn, card, region) {
+  originalCardColumn.appendChild(card);
+  clearCardStyle(card);
+  region.htmlNode.classList.remove("over");
 }
 
 function setCardNumber(cardNum) {
@@ -237,7 +245,7 @@ function moveCard(event, card, dropRegions) {
     )[0];
     if (!matchRegion) {
       originalCardColumn.appendChild(card);
-      resetCardPosition(card);
+      clearCardStyle(card);
       return;
     }
     cardDrop(card, matchRegion, originalCardColumn);
@@ -245,9 +253,20 @@ function moveCard(event, card, dropRegions) {
 }
 
 function cardDrop(card, matchRegion, originalCardColumn) {
-  if (matchRegion.name === "count")
-    return coutElementDrop(card, matchRegion, originalCardColumn);
-  temporaryElementDrop(card, matchRegion, originalCardColumn);
+  switch (matchRegion.name) {
+    case "count":
+      coutElementDrop(card, matchRegion, originalCardColumn);
+      break;
+    case "temporary":
+      temporaryElementDrop(card, matchRegion, originalCardColumn);
+      break;
+    case "random":
+      columnByRandomElementDrop(card, matchRegion, originalCardColumn);
+      break;
+    default:
+      alert("偵測區域錯誤");
+      break;
+  }
 }
 
 function checkCardSuit(droppedCard, bottomCard) {
@@ -369,12 +388,13 @@ function cardLongHalfInDropRegion(cardPosition, dropRegion) {
     cardPosition.top < dropRegion.top
       ? cardPosition.bottom - dropRegion.top
       : dropRegion.bottom - cardPosition.top;
-  return cardLongInRegion/cardPosition.height > 0.5;
+  return cardLongInRegion / cardPosition.height > 0.5;
 }
 
-function resetCardPosition(card) {
+function clearCardStyle(card) {
   card.style.position = "";
   card.style.left = "";
   card.style.top = "";
   card.style.zIndex = "";
 }
+
