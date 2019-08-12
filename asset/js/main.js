@@ -78,35 +78,38 @@ function initColumnByRandomElementEvent(column) {
   column.addEventListener("drop", columnByRandomElementDrop);
 }
 
-function coutElementDrop(card, region) {
-  console.log("coutElementDrop");
-  // this.classList.remove("over");
-  const dropCardId = e.dataTransfer.getData("text").split(",");
-  if (dropCardId.length > 1) return;
-
-  const dropCard = document.getElementById(dropCardId.join(""));
-  const hasCardCount = this.children.length;
-  if (hasCardCount) {
-    const isSameSuit = checkCardSuit(dropCard, this.children[0]);
-    const order = checkCardOrder(dropCard, this.lastChild, "increment");
-    if (!isSameSuit || !order) return;
+function coutElementDrop(card, region, originalCardColumn) {
+  const hasCard = region.htmlNode.children.length;
+  if (hasCard) {
+    const isSameSuit = checkCardSuit(card, region.htmlNode.children[0]);
+    const order = checkCardOrder(card, region.htmlNode.lastChild, "increment");
+    if (!isSameSuit || !order) {
+      originalCardColumn.appendChild(card);
+      resetCardPosition(card);
+      return;
+    }
   } else {
-    const isAce = getCardNumber(dropCard) === 1;
-    if (!isAce) return;
+    const isAce = getCardNumber(card) === 1;
+    if (!isAce) {
+      originalCardColumn.appendChild(card);
+      resetCardPosition(card);
+      return;
+    }
   }
-  this.appendChild(dropCard);
+  region.htmlNode.appendChild(card);
+  resetCardPosition(card);
 }
 
-function temporaryElementDrop(cards, region, originalCardColumn) {
+function temporaryElementDrop(card, region, originalCardColumn) {
   // this.classList.remove("over");
   const hasCard = region.htmlNode.children.length;
   // const dropCardId = cards.map(card=>getCardId(card));
   if (hasCard) {
-    originalCardColumn.appendChild(cards);
+    originalCardColumn.appendChild(card);
   } else {
-    region.htmlNode.appendChild(cards);
+    region.htmlNode.appendChild(card);
   }
-  resetCardPosition(cards);
+  resetCardPosition(card);
 }
 
 function columnByRandomElementDrop(card, region) {
@@ -233,7 +236,8 @@ function moveCard(event, card, dropRegions) {
 }
 
 function cardDrop(card, matchRegion, originalCardColumn) {
-  if (matchRegion.name === "count") return true;
+  if (matchRegion.name === "count")
+    return coutElementDrop(card, matchRegion, originalCardColumn);
   temporaryElementDrop(card, matchRegion, originalCardColumn);
 }
 
