@@ -78,7 +78,9 @@ function initColumnByRandomElementEvent(column) {
   column.addEventListener("drop", columnByRandomElementDrop);
 }
 
-function coutElementDrop(card, region, originalCardColumn) {
+function coutElementDrop(putCardBox, region, originalCardColumn) {
+  if (putCardBox.childElementCount > 1) return;
+  const card = putCardBox.firstChild;
   const hasCard = region.htmlNode.children.length;
   if (hasCard) {
     const isSameSuit = checkCardSuit(card, region.htmlNode.children[0]);
@@ -99,11 +101,10 @@ function coutElementDrop(card, region, originalCardColumn) {
   region.htmlNode.classList.remove("over");
 }
 
-function temporaryElementDrop(card, region, originalCardColumn) {
-  // this.classList.remove("over");
+function temporaryElementDrop(putCardBox, region, originalCardColumn) {
   const hasCard = region.htmlNode.children.length;
-  // const dropCardId = cards.map(card=>getCardId(card));
-  if (hasCard) {
+  const card = putCardBox.firstChild;
+  if (hasCard || putCardBox.childElementCount > 1) {
     resetCardToOriginalRegion(originalCardColumn, card, region);
     return;
   }
@@ -112,22 +113,25 @@ function temporaryElementDrop(card, region, originalCardColumn) {
   region.htmlNode.classList.remove("over");
 }
 
-function columnByRandomElementDrop(card, region, originalCardColumn) {
-  // this.classList.remove("over");
-  // const firtCardInGroup = document.getElementById(cardGroup[0]);
-  // const meetRule = compareCardMeetsTheRule(region.htmlNode.lastChild, firtCardInGroup);
-  const meetRule = compareCardMeetsTheRule(region.htmlNode.lastChild, card);
+function columnByRandomElementDrop(putCardBox, region, originalCardColumn) {
+  const cardGroup = [...putCardBox.children];
+  console.log(cardGroup);
+  const meetRule = compareCardMeetsTheRule(
+    region.htmlNode.lastChild,
+    cardGroup[0]
+  );
   if (!meetRule) {
-    resetCardToOriginalRegion(originalCardColumn, card, region);
+    cardGroup.forEach(card => {
+      resetCardToOriginalRegion(originalCardColumn, card, region);
+    });
     return;
   }
-  region.htmlNode.appendChild(card);
-  clearCardStyle(card);
+  console.log(cardGroup);
+  cardGroup.forEach(card => {
+    region.htmlNode.appendChild(card);
+    clearCardStyle(card);
+  });
   region.htmlNode.classList.remove("over");
-  // cardGroup.forEach(cardId => {
-  //   const dropCard = document.getElementById(cardId);
-  //   region.htmlNode.appendChild(dropCard);
-  // });
 }
 
 function resetCardToOriginalRegion(originalCardColumn, card, region) {
@@ -186,9 +190,6 @@ function clickCard(e) {
     allCardsInColumn,
     this
   );
-  const currentCardUntilEndId = currentCardUntilEndGroup
-    .map(card => getCardId(card))
-    .join(",");
   const countStorages = [...document.querySelectorAll(".countStorages__item")];
   const temporaryStorages = [
     ...document.querySelectorAll(".temporaryStorages__item")
@@ -202,35 +203,32 @@ function clickCard(e) {
     ...randomCardContainer
   ]);
 
-  moveCard(e, this, dropRegions);
+  moveCard(e, currentCardUntilEndGroup, dropRegions);
 }
 
-function moveCard(event, card, dropRegions) {
-  let cardPosition = card.getBoundingClientRect();
-  let originalCardColumn = card.parentNode;
-  let shiftX = event.clientX - cardPosition.left;
-  let shiftY = event.clientY - cardPosition.top;
-  card.style.position = "absolute";
-  card.style.zIndex = 1000;
-  document.body.append(card);
-
+function moveCard(event, cardGroup, dropRegions) {
+  let putCardBoxPosition = cardGroup[0].getBoundingClientRect();
+  let originalCardColumn = cardGroup[0].parentNode;
+  let shiftX = event.clientX - putCardBoxPosition.left;
+  let shiftY = event.clientY - putCardBoxPosition.top;
+  let putCardBox = generateCardBox(cardGroup);
+  document.body.append(putCardBox);
   moveAt(event.pageX, event.pageY);
-
   document.addEventListener("mousemove", onMouseMove);
 
-  card.addEventListener("mouseup", mouseUp, {
+  putCardBox.addEventListener("mouseup", mouseUp, {
     once: true
   });
 
   function moveAt(pageX, pageY) {
-    card.style.left = pageX - shiftX + "px";
-    card.style.top = pageY - shiftY + "px";
+    putCardBox.style.left = pageX - shiftX + "px";
+    putCardBox.style.top = pageY - shiftY + "px";
   }
 
   function onMouseMove(event) {
     moveAt(event.pageX, event.pageY);
     dropRegions.forEach(region => {
-      const isMatch = checkIsInDropRegion(card, region);
+      const isMatch = checkIsInDropRegion(putCardBox, region);
       if (isMatch) {
         region.htmlNode.classList.add("over");
         return;
@@ -241,32 +239,43 @@ function moveCard(event, card, dropRegions) {
   function mouseUp(event) {
     document.removeEventListener("mousemove", onMouseMove);
     const matchRegion = dropRegions.filter(region =>
-      checkIsInDropRegion(card, region)
+      checkIsInDropRegion(putCardBox, region)
     )[0];
     if (!matchRegion) {
-      originalCardColumn.appendChild(card);
-      clearCardStyle(card);
+      originalCardColumn.appendChild(putCardBox);
+      clearCardStyle(putCardBox);
       return;
     }
-    cardDrop(card, matchRegion, originalCardColumn);
+    cardDrop(putCardBox, matchRegion, originalCardColumn);
   }
 }
 
-function cardDrop(card, matchRegion, originalCardColumn) {
+function cardDrop(putCardBox, matchRegion, originalCardColumn) {
   switch (matchRegion.name) {
     case "count":
-      coutElementDrop(card, matchRegion, originalCardColumn);
+      coutElementDrop(putCardBox, matchRegion, originalCardColumn);
       break;
     case "temporary":
-      temporaryElementDrop(card, matchRegion, originalCardColumn);
+      temporaryElementDrop(putCardBox, matchRegion, originalCardColumn);
       break;
     case "random":
-      columnByRandomElementDrop(card, matchRegion, originalCardColumn);
+      columnByRandomElementDrop(putCardBox, matchRegion, originalCardColumn);
       break;
     default:
       alert("偵測區域錯誤");
       break;
   }
+}
+
+function generateCardBox(cardGroup) {
+  const cardBox = document.createElement("div");
+  cardBox.setAttribute("class", "putCardBox");
+  cardBox.style.position = "absolute";
+  cardBox.style.zIndex = 1000;
+  cardGroup.forEach(card => {
+    cardBox.appendChild(card);
+  });
+  return cardBox;
 }
 
 function checkCardSuit(droppedCard, bottomCard) {
@@ -397,4 +406,3 @@ function clearCardStyle(card) {
   card.style.top = "";
   card.style.zIndex = "";
 }
-
