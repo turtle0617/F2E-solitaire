@@ -78,7 +78,7 @@ section {
   width: 110px;
   height: 145px;
   margin-left: 1.5rem;
-  border: 1px solid #ededed;
+  box-shadow: 0 0 0px 1px #ededed;
   border-radius: 6px;
 }
 .card {
@@ -90,7 +90,7 @@ section {
   vertical-align: top;
 }
 .cardStorage.over {
-  border: 2px dashed #ededed;
+  box-shadow: 0 0 0px 1px #FFEB3B, 0px 0 0px 5px #2f221a, 0 0 0px 8px #FFEB3B;
 }
 .cardStorage:first-child {
   margin-left: 0;
