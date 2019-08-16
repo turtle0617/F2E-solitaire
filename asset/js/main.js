@@ -6,10 +6,10 @@ function main(cardNum) {
   const randomCardContainer = [
     ...document.querySelectorAll(".randomCards__column")
   ];
-  const countStorages = [...document.querySelectorAll(".countStorages__item")];
-  const temporaryStorages = [
-    ...document.querySelectorAll(".temporaryStorages__item")
-  ];
+  // const countStorages = [...document.querySelectorAll(".countStorages__item")];
+  // const temporaryStorages = [
+  //   ...document.querySelectorAll(".temporaryStorages__item")
+  // ];
   randomCardContainer.forEach((column, index) => {
     initColumnByRandomElementEvent(column);
     cargGroup[index].forEach(card =>
@@ -79,6 +79,7 @@ function initColumnByRandomElementEvent(column) {
 }
 
 function coutElementDrop(putCardBox, region, originalCardColumn) {
+  const countStorages = [...document.querySelectorAll(".countStorages__item")];
   if (putCardBox.childElementCount > 1) {
     resetCardToOriginalRegion(
       originalCardColumn,
@@ -106,6 +107,9 @@ function coutElementDrop(putCardBox, region, originalCardColumn) {
   region.htmlNode.appendChild(card);
   clearCardStyle(card);
   region.htmlNode.classList.remove("over");
+  if(clearGame(countStorages)){
+    resetGame();
+  }
 }
 
 function temporaryElementDrop(putCardBox, region, originalCardColumn) {
@@ -411,4 +415,39 @@ function clearCardStyle(card) {
   card.style.left = "";
   card.style.top = "";
   card.style.zIndex = "";
+}
+
+function clearGame(countStorages) {
+  return countStorages.every(countStorage => {
+    const cards = [...countStorage.children];
+    const [cardsNum, cardsSuit] = cards.map(card => [
+      getCardNumber(card),
+      getCardSuit(card)
+    ]);
+    const isAllSameSuit = new Set(cardsSuit).size === 1;
+    const isOrder = cardsNum.every((cardNum, index) => cardNum === index + 1);
+    return isAllSameSuit && isOrder;
+  });
+}
+
+function resetGame(){
+  const hideScreen = document.createElement('div');
+  const resetGame = document.createElement('div');
+  const resetGame__title = document.createElement('div');
+  const resresetGame__select = document.createElement('div');
+  hideScreen.setAttribute("class", "hideScreen");
+  resetGame.setAttribute("class", "resetGame");
+  resetGame__title.setAttribute("class", "resetGame__title");
+  resresetGame__select.setAttribute("class", "resetGame__select");
+  resetGame__title.innerText = 'New Game';
+  resresetGame__select.innerText = 'Restart Game';
+  resresetGame__select.addEventListener('click',function(){
+    console.log('hi')
+  },{
+    once:true
+  })
+  resetGame.appendChild(resetGame__title);
+  resetGame.appendChild(resresetGame__select);
+  hideScreen.appendChild(resetGame);
+  document.body.appendChild(hideScreen);
 }
