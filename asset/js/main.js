@@ -305,7 +305,8 @@ function getDragPositionInScreen(dragAreas) {
   });
 }
 
-function checkIsInDropRegion(card, dropRegion) {
+function checkIsInDropRegion(putCardBox, dropRegion) {
+  const card = putCardBox.firstChild;
   let cardPosition = card.getBoundingClientRect();
   return (
     cardWidthHalfInDropRegion(cardPosition, dropRegion) &&
