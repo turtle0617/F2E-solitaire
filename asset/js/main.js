@@ -79,7 +79,14 @@ function initColumnByRandomElementEvent(column) {
 }
 
 function coutElementDrop(putCardBox, region, originalCardColumn) {
-  if (putCardBox.childElementCount > 1) return;
+  if (putCardBox.childElementCount > 1) {
+    resetCardToOriginalRegion(
+      originalCardColumn,
+      [...putCardBox.children],
+      region
+    );
+    return;
+  }
   const card = putCardBox.firstChild;
   const hasCard = region.htmlNode.children.length;
   if (hasCard) {
@@ -102,6 +109,14 @@ function coutElementDrop(putCardBox, region, originalCardColumn) {
 }
 
 function temporaryElementDrop(putCardBox, region, originalCardColumn) {
+  if (putCardBox.childElementCount > 1) {
+    resetCardToOriginalRegion(
+      originalCardColumn,
+      [...putCardBox.children],
+      region
+    );
+    return;
+  }
   const hasCard = region.htmlNode.children.length;
   const card = putCardBox.firstChild;
   if (hasCard || putCardBox.childElementCount > 1) {
@@ -115,7 +130,6 @@ function temporaryElementDrop(putCardBox, region, originalCardColumn) {
 
 function columnByRandomElementDrop(putCardBox, region, originalCardColumn) {
   const cardGroup = [...putCardBox.children];
-  console.log(cardGroup);
   const meetRule = compareCardMeetsTheRule(
     region.htmlNode.lastChild,
     cardGroup[0]
@@ -126,7 +140,6 @@ function columnByRandomElementDrop(putCardBox, region, originalCardColumn) {
     });
     return;
   }
-  console.log(cardGroup);
   cardGroup.forEach(card => {
     region.htmlNode.appendChild(card);
     clearCardStyle(card);
@@ -135,9 +148,17 @@ function columnByRandomElementDrop(putCardBox, region, originalCardColumn) {
 }
 
 function resetCardToOriginalRegion(originalCardColumn, card, region) {
-  originalCardColumn.appendChild(card);
-  clearCardStyle(card);
-  region.htmlNode.classList.remove("over");
+  if (Array.isArray(card)) {
+    card.forEach(item => {
+      originalCardColumn.appendChild(item);
+      clearCardStyle(item);
+    });
+  } else {
+    originalCardColumn.appendChild(card);
+    clearCardStyle(card);
+  }
+  if (region) region.htmlNode.classList.remove("over");
+  return;
 }
 
 function setCardNumber(cardNum) {
@@ -242,11 +263,12 @@ function moveCard(event, cardGroup, dropRegions) {
       checkIsInDropRegion(putCardBox, region)
     )[0];
     if (!matchRegion) {
-      originalCardColumn.appendChild(putCardBox);
-      clearCardStyle(putCardBox);
+      resetCardToOriginalRegion(originalCardColumn, [...putCardBox.children]);
+      putCardBox.remove();
       return;
     }
     cardDrop(putCardBox, matchRegion, originalCardColumn);
+    putCardBox.remove();
   }
 }
 
@@ -361,22 +383,6 @@ function checkIsInDropRegion(card, dropRegion) {
     cardLongHalfInDropRegion(cardPosition, dropRegion)
   );
 }
-// function moveLeftAndInRegion(cardPosition, region) {
-//   return (
-//     cardPosition.left > region.left &&
-//     cardPosition.top < region.bottom &&
-//     cardPosition.bottom > region.top
-//   );
-// }
-
-// function moveRightAndInRegion(cardPosition, region) {
-//   // console.log(cardPosition.left , region.left);
-//   return (
-//     cardPosition.left < region.left &&
-//     cardPosition.top < region.bottom &&
-//     cardPosition.bottom > region.top
-//   );
-// }
 
 function cardWidthHalfInDropRegion(cardPosition, dropRegion) {
   const cardWidthInRegion =
