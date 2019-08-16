@@ -6,76 +6,11 @@ function main(cardNum) {
   const randomCardContainer = [
     ...document.querySelectorAll(".randomCards__column")
   ];
-  // const countStorages = [...document.querySelectorAll(".countStorages__item")];
-  // const temporaryStorages = [
-  //   ...document.querySelectorAll(".temporaryStorages__item")
-  // ];
   randomCardContainer.forEach((column, index) => {
-    // initColumnByRandomElementEvent(column);
     cargGroup[index].forEach(card =>
       column.appendChild(generateCardElement(card))
     );
   });
-  // countStorages.forEach(count => initDropedElementEvent(count, "count"))
-  // temporaryStorages.forEach(temporary => initDropedElementEvent(temporary, "temporary"))
-}
-
-function dragCard(e) {
-  const cardColumn = this.parentNode;
-  const allCardsInColumn = [...cardColumn.children];
-  const isLastCard = cardColumn.lastChild === this;
-  const isOrder = checkCardOrderUntilEnd(this, allCardsInColumn);
-  if (!isLastCard && !isOrder) {
-    e.preventDefault();
-    return;
-  }
-  const currentCardUntilEndGroup = getCurrentCardUntilEnd(
-    allCardsInColumn,
-    this
-  );
-  const currentCardUntilEndId = currentCardUntilEndGroup
-    .map(card => getCardId(card))
-    .join(",");
-  e.dataTransfer.dropEffect = "move";
-  e.dataTransfer.setData("text/plain", currentCardUntilEndId);
-}
-
-function dropCard(e) {
-  const allCardsInColumn = [...this.parentNode.children];
-  const currentCardUntilEndGroup = getCurrentCardUntilEnd(
-    allCardsInColumn,
-    this
-  );
-}
-
-// function initDropedElementEvent(item, status) {
-//   item.addEventListener("dragenter", function(e) {
-//     this.classList.add("over");
-//   });
-//   item.addEventListener("dragleave", function(e) {
-//     this.classList.remove("over");
-//   });
-//   item.addEventListener("dragover", function(e) {
-//     e.stopPropagation();
-//     e.preventDefault();
-//   });
-//   if (status === "temporary")
-//     return item.addEventListener("drop", temporaryElementDrop);
-//   item.addEventListener("drop", coutElementDrop);
-// }
-
-function initColumnByRandomElementEvent(column) {
-  column.addEventListener("dragenter", function(e) {
-    this.classList.add("over");
-  });
-  column.addEventListener("dragleave", function(e) {
-    this.classList.remove("over");
-  });
-  column.addEventListener("dragover", function(e) {
-    e.stopPropagation();
-    e.preventDefault();
-  });
-  column.addEventListener("drop", columnByRandomElementDrop);
 }
 
 function coutElementDrop(putCardBox, region, originalCardColumn) {
@@ -215,20 +150,9 @@ function clickCard(e) {
     allCardsInColumn,
     this
   );
-  const countStorages = [...document.querySelectorAll(".countStorages__item")];
-  const temporaryStorages = [
-    ...document.querySelectorAll(".temporaryStorages__item")
-  ];
-  const randomCardContainer = [
-    ...document.querySelectorAll(".randomCards__column")
-  ];
-  const dropRegions = getDragPositionInScreen([
-    ...temporaryStorages,
-    ...countStorages,
-    ...randomCardContainer
-  ]);
-
-  moveCard(e, currentCardUntilEndGroup, dropRegions);
+  const dropRegions = getDropRegion();
+  const dropRegionsDetail = getDragPositionInScreen(dropRegions);
+  moveCard(e, currentCardUntilEndGroup, dropRegionsDetail);
 }
 
 function moveCard(event, cardGroup, dropRegions) {
@@ -459,6 +383,15 @@ function resetGame() {
 }
 
 function clearRandomCardColumn() {
+  const dropRegions = getDropRegion();
+  dropRegions.forEach(region => {
+    while (region.lastChild) {
+      region.removeChild(region.lastChild);
+    }
+  });
+}
+
+function getDropRegion() {
   const countStorages = [...document.querySelectorAll(".countStorages__item")];
   const temporaryStorages = [
     ...document.querySelectorAll(".temporaryStorages__item")
@@ -471,10 +404,5 @@ function clearRandomCardColumn() {
     ...countStorages,
     ...randomCardContainer
   ];
-  dropRegions.forEach(region => {
-    console.log(region);
-    while (region.lastChild) {
-      region.removeChild(region.lastChild);
-    }
-  });
+  return dropRegions;
 }
