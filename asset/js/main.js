@@ -346,10 +346,11 @@ function clearGame(countStorages) {
   return countStorages.every(countStorage => {
     const cards = [...countStorage.children];
     const cardsNum = cards.map(card => getCardNumber(card));
+    const hasEnoughCard = cardsNum.length === 13;
     const cardsSuit = cards.map(card => getCardSuit(card));
     const isAllSameSuit = new Set(cardsSuit).size === 1;
     const isOrder = cardsNum.every((cardNum, index) => cardNum === index + 1);
-    return isAllSameSuit && isOrder;
+    return isAllSameSuit && isOrder && hasEnoughCard;
   });
 }
 
