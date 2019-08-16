@@ -11,7 +11,7 @@ function main(cardNum) {
   //   ...document.querySelectorAll(".temporaryStorages__item")
   // ];
   randomCardContainer.forEach((column, index) => {
-    initColumnByRandomElementEvent(column);
+    // initColumnByRandomElementEvent(column);
     cargGroup[index].forEach(card =>
       column.appendChild(generateCardElement(card))
     );
@@ -107,7 +107,7 @@ function coutElementDrop(putCardBox, region, originalCardColumn) {
   region.htmlNode.appendChild(card);
   clearCardStyle(card);
   region.htmlNode.classList.remove("over");
-  if(clearGame(countStorages)){
+  if (clearGame(countStorages)) {
     resetGame();
   }
 }
@@ -430,24 +430,51 @@ function clearGame(countStorages) {
   });
 }
 
-function resetGame(){
-  const hideScreen = document.createElement('div');
-  const resetGame = document.createElement('div');
-  const resetGame__title = document.createElement('div');
-  const resresetGame__select = document.createElement('div');
+function resetGame() {
+  const hideScreen = document.createElement("div");
+  const resetGame = document.createElement("div");
+  const resetGame__title = document.createElement("div");
+  const resresetGame__select = document.createElement("div");
   hideScreen.setAttribute("class", "hideScreen");
   resetGame.setAttribute("class", "resetGame");
   resetGame__title.setAttribute("class", "resetGame__title");
   resresetGame__select.setAttribute("class", "resetGame__select");
-  resetGame__title.innerText = 'New Game';
-  resresetGame__select.innerText = 'Restart Game';
-  resresetGame__select.addEventListener('click',function(){
-    console.log('hi')
-  },{
-    once:true
-  })
+  resetGame__title.innerText = "New Game";
+  resresetGame__select.innerText = "Restart Game";
+  resresetGame__select.addEventListener(
+    "click",
+    function() {
+      clearRandomCardColumn();
+      main(52);
+      hideScreen.remove();
+    },
+    {
+      once: true
+    }
+  );
   resetGame.appendChild(resetGame__title);
   resetGame.appendChild(resresetGame__select);
   hideScreen.appendChild(resetGame);
   document.body.appendChild(hideScreen);
+}
+
+function clearRandomCardColumn() {
+  const countStorages = [...document.querySelectorAll(".countStorages__item")];
+  const temporaryStorages = [
+    ...document.querySelectorAll(".temporaryStorages__item")
+  ];
+  const randomCardContainer = [
+    ...document.querySelectorAll(".randomCards__column")
+  ];
+  const dropRegions = [
+    ...temporaryStorages,
+    ...countStorages,
+    ...randomCardContainer
+  ];
+  dropRegions.forEach(region => {
+    console.log(region);
+    while (region.lastChild) {
+      region.removeChild(region.lastChild);
+    }
+  });
 }
