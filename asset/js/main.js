@@ -42,7 +42,8 @@ function coutElementDrop(putCardBox, region, originalCardColumn) {
   region.htmlNode.appendChild(card);
   clearCardStyle(card);
   region.htmlNode.classList.remove("over");
-  if (clearGame(countStorages)) {
+  const isClear = clearGame(countStorages);
+  if (isClear) {
     resetGame();
   }
 }
@@ -344,10 +345,8 @@ function clearCardStyle(card) {
 function clearGame(countStorages) {
   return countStorages.every(countStorage => {
     const cards = [...countStorage.children];
-    const [cardsNum, cardsSuit] = cards.map(card => [
-      getCardNumber(card),
-      getCardSuit(card)
-    ]);
+    const cardsNum = cards.map(card => getCardNumber(card));
+    const cardsSuit = cards.map(card => getCardSuit(card));
     const isAllSameSuit = new Set(cardsSuit).size === 1;
     const isOrder = cardsNum.every((cardNum, index) => cardNum === index + 1);
     return isAllSameSuit && isOrder;
