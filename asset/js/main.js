@@ -1,3 +1,5 @@
+const { filter, map, takeUntil, concatAll, withLatestFrom } = rxjs.operators;
+
 main(52);
 
 function main(cardNum) {
@@ -7,9 +9,11 @@ function main(cardNum) {
     ...document.querySelectorAll(".randomCards__column")
   ];
   randomCardContainer.forEach((column, index) => {
-    cargGroup[index].forEach(card =>
-      column.appendChild(generateCardElement(card))
-    );
+    cargGroup[index].forEach((card, i) => {
+      const cardElement = generateCardElement(card);
+      column.appendChild(cardElement);
+      setCardEventListener(cardElement);
+    });
   });
 }
 
@@ -136,9 +140,53 @@ function generateCardElement(card) {
     e.preventDefault();
   });
   cardElement.appendChild(img);
-  cardElement.addEventListener("mousedown", clickCard);
-
+  // cardElement.addEventListener("mousedown", clickCard);
   return cardElement;
+}
+
+function setCardEventListener(card) {
+  const body = document.body;
+  const mousedown = rxjs.fromEvent(card, "mousedown");
+  const mousemove = rxjs.fromEvent(body, "mousemove");
+  const mouseup = rxjs.fromEvent(body, "mouseup");
+  mousedown
+    .pipe(
+      filter(() => canMoveCard(card)),
+      map(() => mousemove.pipe(takeUntil(mouseup))),
+      concatAll(),
+      withLatestFrom(mousedown, (move, down) => ({
+        posX: move.clientX - down.offsetX,
+        posY: move.clientY - down.offsetY
+      }))
+    )
+    .subscribe(({ posX, posY }) => {
+      const currentCardUntilEndGroup = getCurrentCardUntilEnd(
+        [...card.parentNode.children],
+        card
+      );
+      const dropRegionsDetail = getDragPositionInScreen(getDropRegion());
+      let putCardBox = generateCardBox(currentCardUntilEndGroup);
+      document.body.append(putCardBox);
+      putCardBox.style.left = `${posX}px`;
+      putCardBox.style.top = `${posY}px`;
+
+      dropRegionsDetail.forEach(region => {
+        const isMatch = checkIsInDropRegion(putCardBox, region);
+        if (isMatch) {
+          region.htmlNode.classList.add("over");
+          return;
+        }
+        region.htmlNode.classList.remove("over");
+      });
+    });
+}
+
+function canMoveCard(card) {
+  const belongCloumn = card.parentNode;
+  const allCardsInColumn = [...belongCloumn.children];
+  const isLastCard = belongCloumn.lastChild.id === card.id;
+  const isOrder = checkCardOrderUntilEnd(card, allCardsInColumn);
+  return isLastCard || isOrder;
 }
 
 function clickCard(e) {
